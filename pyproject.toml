@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastopic"
+version = "1.0.1"
+description = "FASTopic"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache 2.0 License"}
+authors = [
+    {name = "Xiaobao Wu", email = "xiaobao002@e.ntu.edu.sg"}
+]
+
+
+keywords = [
+    "toolkit",
+    "topic model",
+    "neural topic model",
+    "bert",
+    "semantics",
+    "text processing",
+    "text analysis"
+]
+
+dependencies = [
+    "topmost>=1.0.2"
+]
+
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.3.0"
+]
+
+
+[tool.setuptools]
+packages = ["fastopic"]
+
+[project.urls]
+Homepage = "https://github.com/bobxwu/fastopic"
+Repository = "https://github.com/bobxwu/fastopic.git"
+Issues = "https://github.com/bobxwu/fastopic/issues"
