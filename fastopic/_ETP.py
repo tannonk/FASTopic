@@ -5,12 +5,18 @@ from ._model_utils import pairwise_euclidean_distance
 
 
 class ETP(nn.Module):
-    def __init__(self, sinkhorn_alpha, init_a_dist=None, init_b_dist=None, OT_max_iter=5000, stopThr=.5e-2):
+    def __init__(
+        self,
+        sinkhorn_alpha,
+        init_a_dist=None,
+        init_b_dist=None,
+        OT_max_iter=5000,
+        stop_thr=0.5e-2,
+    ):
         super().__init__()
         self.sinkhorn_alpha = sinkhorn_alpha
         self.OT_max_iter = OT_max_iter
-        self.stopThr = stopThr
-        self.epsilon = 1e-16
+        self.stop_thr = stop_thr
         self.init_a_dist = init_a_dist
         self.init_b_dist = init_b_dist
 
@@ -48,7 +54,7 @@ class ETP(nn.Module):
         # Sinkhorn iterations in log-domain
         err = 1
         cpt = 0
-        while err > self.stopThr and cpt < self.OT_max_iter:
+        while err > self.stop_thr and cpt < self.OT_max_iter:
             # LOG-DOMAIN UPDATE: log(v) = log(b) - logsumexp(log(K^T) + log(u), dim=0)
             # This is equivalent to: v = b / (K^T @ u) but numerically stable
             log_Ku = log_K.T + log_u.T  # Shape: (m, n)
@@ -66,8 +72,7 @@ class ETP(nn.Module):
                 # Reset scalings
                 log_u = torch.zeros_like(log_a)
                 log_v = torch.zeros_like(log_b)
-                
-                
+
                 err = self.check_convergence(log_K, log_u, log_v, a, b)
 
         # Convert final results back to linear domain for compatibility
@@ -109,10 +114,8 @@ class ETP(nn.Module):
             col_sums = torch.exp(log_col_sums)  # Shape: (m, 1)
 
             # Compute absolute errors
-            row_abs_err = torch.abs(row_sums - a)
-            max_row_err = torch.max(row_abs_err)
+            row_err = torch.abs(row_sums - a).sum()
 
-            col_abs_err = torch.abs(col_sums - b)
-            max_col_err = torch.max(col_abs_err)
+            col_err = torch.abs(col_sums - b).sum()
 
-            return max(max_row_err.item(), max_col_err.item())
+            return max(row_err.item(), col_err.item())
