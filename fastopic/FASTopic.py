@@ -327,15 +327,23 @@ class FASTopic:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        state = torch.load(path, map_location=device, weights_only=False)
+        state = torch.load(path, weights_only=False)
+
         instance_dict = state["instance_dict"]
         instance_dict["device"] = device
-
         if preprocess:
             instance_dict["preprocess"] = preprocess
         if low_memory:
             instance_dict["low_memory"] = low_memory
             instance_dict["low_memory_batch_size"] = low_memory_batch_size
+
+        for key, val in instance_dict.items():
+            if key != "train_doc_embeddings" and isinstance(val, torch.Tensor):
+                instance_dict[key] = val.to(device)
+
+        if not instance_dict["low_memory"]:
+            # Move train_doc_embeddings to the device.
+            instance_dict["train_doc_embeddings"] = instance_dict["train_doc_embeddings"].to(device)
 
         instance = cls.__new__(cls)
         instance.__dict__.update(instance_dict)
