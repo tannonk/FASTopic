@@ -112,11 +112,13 @@ class FASTopic:
         preset_doc_embeddings: np.ndarray = None,
     ):
         """
+        docs: A list of documents to be used for training.
         epochs: The number of epochs.
         learning_rate: The learning rate.
-        low_memory: Set this to True to learn with a batch of documents at each time.
-                     This uses less memory.
-        batch_size: The batch size is used when low_memory is True.
+        preset_doc_embeddings: If you have precomputed document embeddings,
+                              you can pass them here to avoid recomputing.
+                              This should be a numpy array of shape (N, D),
+                              where N is the number of documents and D is the embedding dimension.
         """
         # Preprocess docs
         data_size = len(docs)

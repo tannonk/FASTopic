@@ -72,7 +72,6 @@ class fastopic(nn.Module):
         self.TW_ETP = ETP(self.TW_alpha, init_b_dist=self.word_weights)
 
     def get_transp_DT(self, doc_embeddings):
-
         topic_embeddings = self.topic_embeddings.detach().to(doc_embeddings.device)
         _, transp = self.DT_ETP(doc_embeddings, topic_embeddings)
 
