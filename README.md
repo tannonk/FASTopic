@@ -246,19 +246,25 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
     You can try to set `low_memory=True` and  `low_memory_batch_size` in FASTopic.
     `low_memory_batch_size` should not be too small, otherwise it may damage performance.
 
-
     ```python
     model = FASTopic(50, low_memory=True, low_memory_batch_size=2000)
     ```
-
     Or you can run FASTopic on the CPU as
 
     ```python
     model = FASTopic(50, device='cpu')
     ```
 
+1. **How can I further accelerate the training?**
 
-2. **Can I try FASTopic with the languages other than English?**
+    To speed up training, you can increase the learning rate and reduce the number of training epochs. Note that this may slightly affect performance. For example:
+
+    ```python
+        model.fit_transform(docs, learning_rate=0.01, epochs=50)
+    ```
+
+
+1. **Can I try FASTopic with the languages other than English?**
 
     Yes!
     You can pass a multilingual document embedding model, like `paraphrase-multilingual-MiniLM-L12-v2`,
@@ -267,8 +273,7 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
     [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1_b55QpVQGFBX9PsyrYfNxDzbJ1IjrUdH?usp=sharing)
 
 
-
-3. **Loss value can not decline, and the discovered topics all are repetitive.**
+1. **Loss value can not decline, and the discovered topics all are repetitive.**
 
     This may be caused by the less discriminative document embeddings,
     due to the used document embedding model or extremely short texts as inputs.  
@@ -277,7 +282,7 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
         or
         (2) increase `DT_alpha` to `5.0`, `10.0` or `15.0`, as `FASTopic(num_topics, DT_alpha=10.0)`.
 
-4. **How to reproduce the results? How to get the same results every time?**
+1. **How to reproduce the results? How to get the same results every time?**
 
     Since FASTopic mainly depends on pytorch and sentence-transformers, you can set random seeds before running FASTopic to get the same results every time:
 
@@ -291,7 +296,7 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
     model.fit_transform(docs)
     ```
    
-5. **Can I use my own document embedding models?**
+1. **Can I use my own document embedding models?**
 
    Yes! You can wrap your model and pass it to FASTopic:
 
@@ -313,7 +318,7 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
     model = FASTopic(50, doc_embed_model=your_model)
     ```
 
-6. **Can I use my own preprocess module?**
+1. **Can I use my own preprocess module?**
 
    Yes! You can wrap your module and pass it to FASTopic:
 
@@ -336,7 +341,13 @@ We summarize the frequently used APIs of FASTopic here. It's easier for you to l
     model = FASTopic(50, preprocess=your_preprocess)
     ```
 
+1. **How can I print the running log and progress bars?**
 
+    To enable logging during execution, you can set the verbose parameter to True when initializing the model:
+
+    ```python
+    model = FASTopic(num_topics=50, verbose=True)
+    ```
 
 ## Contact
 - We welcome your contributions to this project. Please feel free to submit pull requests.
