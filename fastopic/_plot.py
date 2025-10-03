@@ -7,6 +7,7 @@ from scipy.cluster import hierarchy as sch
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px
 
 from typing import Callable, List, Union
 from textwrap import wrap
@@ -44,15 +45,15 @@ def visualize_topic(topic_model,
     beta = topic_model.get_beta()
 
     if topic_labels is None:
-        subplot_titles = [f"Topic {i}" for i in topic_idx]
+        subplot_titles = [f"Topic {i}" for i in topic_idx][:top_n]
     else:
-        assert len(topic_labels) == len(topic_idx), "Labels length must match the number of topics."
-        subplot_titles = ['<br>'.join(wrap(topic_labels[i], width=24)) for i in topic_idx]
+        assert len(topic_labels) == topic_model.topic_embeddings.shape[0], "Number of provided topic labels differs from the true number of topics."
+        subplot_titles = ['<br>'.join(wrap(topic_labels[i], width=24)) for i in topic_idx][:top_n]
 
     columns = 4
     rows = int(np.ceil(len(topic_idx) / columns))
 
-    colors = itertools.cycle(["#D55E00", "#0072B2", "#CC79A7", "#E69F00", "#56B4E9", "#009E73", "#F0E442"])
+    colors = itertools.cycle(px.colors.qualitative.Alphabet)
 
     fig = make_subplots(rows=rows,
                         cols=columns,
@@ -128,7 +129,7 @@ def visualize_activity(topic_model,
 
     topic_idx = wrap_topic_idx(topic_model, top_n, topic_idx)
 
-    colors = ["#E69F00", "#56B4E9", "#009E73", "#F0E442", "#D55E00", "#0072B2", "#CC79A7"]
+    colors = itertools.cycle(px.colors.qualitative.Alphabet)
 
     fig = go.Figure()
     topic_top_words = topic_model.top_words
@@ -138,7 +139,7 @@ def visualize_activity(topic_model,
         for i, words in enumerate(topic_top_words):
             topic_labels.append(f"{i}_{'_'.join(words.split()[:n_label_words])}")
     else:
-        assert len(topic_labels) == topic_activity.shape[0], "Labels length must match the number of topics."
+        assert len(topic_labels) == topic_model.topic_embeddings.shape[0], "Number of provided topic labels differs from the true number of topics."
 
     labels = np.unique(time_slices).tolist()
 
@@ -148,7 +149,7 @@ def visualize_activity(topic_model,
             x=labels,
             y=topic_activity[k].tolist(),
             mode='lines',
-            marker_color=colors[i % 7],
+            marker_color=next(colors),
             hoverinfo="text",
             name=topic_labels[k],
             hovertext=topic_labels[k])
