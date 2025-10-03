@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from typing import Callable, List, Union
-
+from textwrap import wrap
 
 def wrap_topic_idx(
         topic_model,
@@ -47,7 +47,7 @@ def visualize_topic(topic_model,
         subplot_titles = [f"Topic {i}" for i in topic_idx]
     else:
         assert len(topic_labels) == len(topic_idx), "Labels length must match the number of topics."
-        subplot_titles = [topic_labels[i] for i in topic_idx]
+        subplot_titles = ['<br>'.join(wrap(topic_labels[i], width=24)) for i in topic_idx]
 
     columns = 4
     rows = int(np.ceil(len(topic_idx) / columns))
@@ -83,6 +83,9 @@ def visualize_topic(topic_model,
         else:
             column += 1
 
+    title_lines = max(len(wrap(topic_labels[i], width=24)) for i in topic_idx) if topic_labels is not None else 1
+    buffer_space = title_lines * 20 # approx. height of title in pixels
+
     fig.update_layout(
         template="plotly_white",
         showlegend=False,
@@ -95,6 +98,7 @@ def visualize_topic(topic_model,
                 size=22,
                 color="Black")
         },
+        margin=dict(t=100 + buffer_space), # increase top margin to fit title
         width=width * 4,
         height=height * rows if rows > 1 else height * 1.3,
         hoverlabel=dict(
