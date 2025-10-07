@@ -34,6 +34,7 @@ def visualize_topic(topic_model,
                     top_n: int=None,
                     topic_idx: List[int]=None,
                     n_label_words=5,
+                    title: str = "Topic Overview",
                     width: int = 250,
                     height: int = 250,
                     topic_labels: List[str]=None,
@@ -91,14 +92,15 @@ def visualize_topic(topic_model,
         template="plotly_white",
         showlegend=False,
         title={
-            'text': f"Topic-Word Distributions",
+            'text': f"{title}",
+            'y': .95,
             'x': .5,
             'xanchor': 'center',
             'yanchor': 'top',
             'font': dict(
                 size=22,
                 color="Black")
-        },
+        } if top_n is not None else None,
         margin=dict(t=100 + buffer_space), # increase top margin to fit title
         width=width * 4,
         height=height * rows if rows > 1 else height * 1.3,
@@ -121,7 +123,7 @@ def visualize_activity(topic_model,
                        top_n: int=None,
                        topic_idx: List[int]=None,
                        n_label_words:int=5,
-                       title: str="<b>Topics Activity over Time</b>",
+                       title: str="Topic Activity over Time",
                        width: int=1000,
                        height: int=600,
                        topic_labels: List[str]=None,
@@ -141,7 +143,7 @@ def visualize_activity(topic_model,
     else:
         assert len(topic_labels) == topic_model.topic_embeddings.shape[0], "Number of provided topic labels differs from the true number of topics."
 
-    labels = np.unique(time_slices).tolist()
+    labels = [str(x) for x in np.unique(time_slices)]
 
     for i, k in enumerate(topic_idx):
 
@@ -158,6 +160,8 @@ def visualize_activity(topic_model,
     # Styling of the visualization
     fig.update_xaxes(showgrid=True)
     fig.update_yaxes(showgrid=True)
+    fig.update_xaxes(tickmode='linear', tick0=labels[0], dtick=1, tickformat='.0f')
+    # fig.update_xaxes(type='category') # treat x-axis as categorical to avoid gaps in time series
     fig.update_layout(
         yaxis_title="Topic Weight",
         title={
@@ -169,7 +173,7 @@ def visualize_activity(topic_model,
             'font': dict(
                 size=22,
                 color="Black")
-        },
+        } if title is not None else None,
         template="simple_white",
         width=width,
         height=height,
@@ -187,7 +191,7 @@ def visualize_topic_weights(topic_model,
                             top_n: int=50,
                             topic_idx: List[int]=None,
                             n_label_words: int=5,
-                            title: str="<b>Topic Weights</b>",
+                            title: str="Topic Weights",
                             width: int=1000,
                             height: int=1000,
                             _sort: bool=True,
@@ -235,7 +239,7 @@ def visualize_topic_weights(topic_model,
             'font': dict(
                 size=22,
                 color="Black")
-        },
+        } if title is not None else None,
         template="simple_white",
         width=width,
         height=height,
@@ -250,6 +254,7 @@ def visualize_topic_weights(topic_model,
 
 
 def visualize_hierarchy(topic_model,
+                        title: str = "Topic Hierarchy",
                         orientation: str = "left",
                         width: int = 1000,
                         height: int = 1000,
@@ -284,9 +289,22 @@ def visualize_hierarchy(topic_model,
         labels=topic_labels,
         distfun=distance_function,
         linkagefun=linkage_function,
-        color_threshold=color_threshold
+        color_threshold=color_threshold,
     )
 
-    fig.update_layout({'width': width, 'height': height})
+    fig.update_layout({
+        'title': {
+            'text': f"{title}",
+            'y': .95,
+            'x': 0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': dict(
+                size=22,
+                color="Black")
+        } if title is not None else None,
+        'width': width, 
+        'height': height
+        })
 
     return fig
