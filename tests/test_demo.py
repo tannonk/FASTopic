@@ -1,13 +1,13 @@
 import pytest
 import shutil
 from numpy.testing import assert_almost_equal
-from topmost import Preprocess
 from sklearn.datasets import fetch_20newsgroups
 
 import sys
 sys.path.append("../")
 
 from fastopic import FASTopic
+from topmost import Preprocess
 
 @pytest.fixture
 def cache_path():

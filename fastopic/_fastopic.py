@@ -72,7 +72,6 @@ class fastopic(nn.Module):
         self.TW_ETP = ETP(self.TW_alpha, init_b_dist=self.word_weights)
 
     def get_transp_DT(self, doc_embeddings):
-
         topic_embeddings = self.topic_embeddings.detach().to(doc_embeddings.device)
         _, transp = self.DT_ETP(doc_embeddings, topic_embeddings)
 
@@ -80,28 +79,30 @@ class fastopic(nn.Module):
 
     # only for testing
     def get_beta(self):
-        _, transp_TW = self.TW_ETP(self.topic_embeddings, self.word_embeddings)
-        # use transport plan as beta
-        beta = transp_TW * transp_TW.shape[0]
+        with torch.no_grad():
+            _, transp_TW = self.TW_ETP(self.topic_embeddings, self.word_embeddings)
+            # use transport plan as beta
+            beta = transp_TW * transp_TW.shape[0]
 
-        return beta
+            return beta
 
     # only for testing
     def get_theta(self,
             doc_embeddings,
             train_doc_embeddings
         ):
-        topic_embeddings = self.topic_embeddings.detach().to(doc_embeddings.device)
-        dist = pairwise_euclidean_distance(doc_embeddings, topic_embeddings)
-        train_dist = pairwise_euclidean_distance(train_doc_embeddings, topic_embeddings)
+        with torch.no_grad():
+            topic_embeddings = self.topic_embeddings.detach().to(doc_embeddings.device)
+            dist = pairwise_euclidean_distance(doc_embeddings, topic_embeddings)
+            train_dist = pairwise_euclidean_distance(train_doc_embeddings, topic_embeddings)
 
-        exp_dist = torch.exp(-dist / self.theta_temp)
-        exp_train_dist = torch.exp(-train_dist / self.theta_temp)
+            exp_dist = torch.exp(-dist / self.theta_temp)
+            exp_train_dist = torch.exp(-train_dist / self.theta_temp)
 
-        theta = exp_dist / (exp_train_dist.sum(0))
-        theta = theta / theta.sum(1, keepdim=True)
+            theta = exp_dist / (exp_train_dist.sum(0))
+            theta = theta / theta.sum(1, keepdim=True)
 
-        return theta
+            return theta
 
     def forward(self, train_bow, doc_embeddings):
         loss_DT, transp_DT = self.DT_ETP(doc_embeddings, self.topic_embeddings)

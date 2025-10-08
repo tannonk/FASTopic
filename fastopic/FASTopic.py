@@ -112,11 +112,13 @@ class FASTopic:
         preset_doc_embeddings: np.ndarray = None,
     ):
         """
+        docs: A list of documents to be used for training.
         epochs: The number of epochs.
         learning_rate: The learning rate.
-        low_memory: Set this to True to learn with a batch of documents at each time.
-                     This uses less memory.
-        batch_size: The batch size is used when low_memory is True.
+        preset_doc_embeddings: If you have precomputed document embeddings,
+                              you can pass them here to avoid recomputing.
+                              This should be a numpy array of shape (N, D),
+                              where N is the number of documents and D is the embedding dimension.
         """
         # Preprocess docs
         data_size = len(docs)
@@ -193,7 +195,11 @@ class FASTopic:
                 optimizer.step()
 
                 for key in rst_dict:
-                    loss_rst_dict[key] += rst_dict[key] * batch_bow.shape[0]
+                    loss_rst_dict[key] += rst_dict[key].item() * batch_bow.shape[0]
+
+                if self.low_memory:
+                    del batch_bow, batch_doc_embed, batch_loss, rst_dict
+                    torch.cuda.empty_cache()
 
             if epoch % self.log_interval == 0:
                 output_log = f"Epoch: {epoch:03d}"
@@ -327,15 +333,23 @@ class FASTopic:
         if device is None:
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        state = torch.load(path, map_location=device, weights_only=False)
+        state = torch.load(path, weights_only=False)
+
         instance_dict = state["instance_dict"]
         instance_dict["device"] = device
-
         if preprocess:
             instance_dict["preprocess"] = preprocess
         if low_memory:
             instance_dict["low_memory"] = low_memory
             instance_dict["low_memory_batch_size"] = low_memory_batch_size
+
+        for key, val in instance_dict.items():
+            if key != "train_doc_embeddings" and isinstance(val, torch.Tensor):
+                instance_dict[key] = val.to(device)
+
+        if not instance_dict["low_memory"]:
+            # Move train_doc_embeddings to the device.
+            instance_dict["train_doc_embeddings"] = instance_dict["train_doc_embeddings"].to(device)
 
         instance = cls.__new__(cls)
         instance.__dict__.update(instance_dict)
