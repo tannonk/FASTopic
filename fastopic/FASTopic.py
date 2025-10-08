@@ -400,3 +400,17 @@ class FASTopic:
     def visualize_topic_weights(self, **args):
         assert_fitted(self)
         return _plot.visualize_topic_weights(self, **args)
+
+    def get_representative_docs(self, top_n: int = 10):
+        assert_fitted(self)
+
+        if self.train_theta is None:
+            raise ValueError("Train theta is not available.")
+
+        representative_docs = {}
+        for topic_id in range(self.model.num_topics):
+            topic_column = self.train_theta[:, topic_id]
+            top_doc_indices = np.argsort(topic_column)[-top_n:][::-1]
+            representative_docs[topic_id] = top_doc_indices.tolist()
+
+        return representative_docs
